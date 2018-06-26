@@ -51,7 +51,7 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
 # Define a function to extract features from a list of images
 # Have this function call bin_spatial() and color_hist()
 def extract_features(image_paths, color_space='RGB', spatial_size=(32, 32),
-                     hist_bins=32, orient=9,
+                     hist_bins=32, hist_range=(0, 256), orient=9,
                      pix_per_cell=8, cell_per_block=2, hog_channel=0,
                      spatial_feat=True, hist_feat=True, hog_feat=True):
     # Create a list to append feature vectors to
@@ -60,33 +60,36 @@ def extract_features(image_paths, color_space='RGB', spatial_size=(32, 32),
     for path in image_paths:
         # Read in each one by one
         image = mpimg.imread(path)
-        shoule handle png files (0 - 1) and jpeg files (0 - 255) differently.
+        # should handle png files (0 - 1) and jpeg files (0 - 255) differently.
+        # convert png to jpg
+        if path.lower().endswith('.png'):
+            image = (image[:, :, :3] * 255).astype(np.uint8)
 
         image_features = single_img_features(image, color_space=color_space,
-                                             spatial_size=spatial_size, hist_bins=hist_bins,
+                                             spatial_size=spatial_size, hist_bins=hist_bins, hist_range=hist_range,
                                              orient=orient, pix_per_cell=pix_per_cell,
                                              cell_per_block=cell_per_block,
                                              hog_channel=hog_channel, spatial_feat=spatial_feat,
                                              hist_feat=hist_feat, hog_feat=hog_feat)
         features.append(image_features)
 
-        image = cv2.resize(cv2.resize(image, (17, 17)), (64, 64))
-        image_features = single_img_features(image, color_space=color_space,
-                                             spatial_size=spatial_size, hist_bins=hist_bins,
-                                             orient=orient, pix_per_cell=pix_per_cell,
-                                             cell_per_block=cell_per_block,
-                                             hog_channel=hog_channel, spatial_feat=spatial_feat,
-                                             hist_feat=hist_feat, hog_feat=hog_feat)
-        features.append(image_features)
-
-        image = cv2.resize(cv2.resize(image, (97, 97)), (64, 64))
-        image_features = single_img_features(image, color_space=color_space,
-                                             spatial_size=spatial_size, hist_bins=hist_bins,
-                                             orient=orient, pix_per_cell=pix_per_cell,
-                                             cell_per_block=cell_per_block,
-                                             hog_channel=hog_channel, spatial_feat=spatial_feat,
-                                             hist_feat=hist_feat, hog_feat=hog_feat)
-        features.append(image_features)
+        # image = cv2.resize(cv2.resize(image, (17, 17)), (64, 64))
+        # image_features = single_img_features(image, color_space=color_space,
+        #                                      spatial_size=spatial_size, hist_bins=hist_bins,
+        #                                      orient=orient, pix_per_cell=pix_per_cell,
+        #                                      cell_per_block=cell_per_block,
+        #                                      hog_channel=hog_channel, spatial_feat=spatial_feat,
+        #                                      hist_feat=hist_feat, hog_feat=hog_feat)
+        # features.append(image_features)
+        #
+        # image = cv2.resize(cv2.resize(image, (97, 97)), (64, 64))
+        # image_features = single_img_features(image, color_space=color_space,
+        #                                      spatial_size=spatial_size, hist_bins=hist_bins,
+        #                                      orient=orient, pix_per_cell=pix_per_cell,
+        #                                      cell_per_block=cell_per_block,
+        #                                      hog_channel=hog_channel, spatial_feat=spatial_feat,
+        #                                      hist_feat=hist_feat, hog_feat=hog_feat)
+        # features.append(image_features)
 
     return features
 
@@ -163,7 +166,7 @@ def convert_color(img, conv='RGB2YCrCb'):
 # This function is very similar to extract_features()
 # just for a single image rather than list of images
 def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
-                        hist_bins=32, orient=9,
+                        hist_bins=32, hist_range=(0, 256), orient=9,
                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
                         spatial_feat=True, hist_feat=True, hog_feat=True):
     # 1) Define an empty list to receive features
@@ -189,7 +192,7 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
         img_features.append(spatial_features)
     # 5) Compute histogram features if flag is set
     if hist_feat is True:
-        hist_features = color_hist(feature_image, nbins=hist_bins)
+        hist_features = color_hist(feature_image, nbins=hist_bins, bins_range=hist_range)
         # 6) Append features to list
         img_features.append(hist_features)
     # 7) Compute HOG features if flag is set
@@ -226,7 +229,7 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
         test_img = cv2.resize(img[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
         # 4) Extract features for that window using single_img_features()
         features = single_img_features(test_img, color_space=color_space,
-                                       spatial_size=spatial_size, hist_bins=hist_bins,
+                                       spatial_size=spatial_size, hist_bins=hist_bins, hist_range=hist_range,
                                        orient=orient, pix_per_cell=pix_per_cell,
                                        cell_per_block=cell_per_block,
                                        hog_channel=hog_channel, spatial_feat=spatial_feat,

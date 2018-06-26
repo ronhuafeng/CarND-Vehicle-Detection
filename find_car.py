@@ -23,7 +23,7 @@ img = mpimg.imread('test_image.jpg')
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
     draw_img = np.copy(img)
-    img = img.astype(np.float32) / 255
+    # img = img.astype(np.float32) / 255
 
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
@@ -70,7 +70,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
 
             # Get color features
             spatial_features = bin_spatial(subimg, size=spatial_size)
-            hist_features = color_hist(subimg, nbins=hist_bins)
+            hist_features = color_hist(subimg, nbins=hist_bins, bins_range=(0, 256))
 
             # Scale features and make a prediction
             test_features = X_scaler.transform(
